@@ -1,0 +1,20 @@
+{"question": "Which chapter discusses the Glasgow Coma Scale?", "expected_chunk": "EWS.v5.CHUNK0002", "abstain_expected": false}
+{"question": "What unique medical challenges do military surgeons face that are not typically found in civilian settings?", "expected_chunk": "EWS.v5.CHUNK0004", "abstain_expected": false}
+{"question": "What is the role of the Chief Surgical Triage Officer in a mass casualty situation?", "expected_chunk": "EWS.v5.CHUNK0026", "abstain_expected": false}
+{"question": "Why are audible medical equipment alarms considered useless in certain situations?", "expected_chunk": "EWS.v5.CHUNK0030", "abstain_expected": false}
+{"question": "What factors should be considered when deciding if a patient requires the expertise of a CCATT during aeromedical evacuation?", "expected_chunk": "EWS.v5.CHUNK0032", "abstain_expected": false}
+{"question": "What is the role of the Intensivist Physician in a CCATT?", "expected_chunk": "EWS.v5.CHUNK0033", "abstain_expected": false}
+{"question": "What are some contraindications for Intraosseous (IO) device insertion?", "expected_chunk": "EWS.v5.CHUNK0046", "abstain_expected": false}
+{"question": "What are some indications for a definitive airway in emergency war surgery?", "expected_chunk": "EWS.v5.CHUNK0048", "abstain_expected": false}
+{"question": "Which drugs should be titrated to allow for rapid recovery after general anesthesia termination?", "expected_chunk": "EWS.v5.CHUNK0051", "abstain_expected": false}
+{"question": "What is the goal of therapy for crush syndrome?", "expected_chunk": "EWS.v5.CHUNK0058", "abstain_expected": false}
+{"question": "What is the approximate sodium concentration in 1 L of D5W with 150 mEq NaHCO3?", "expected_chunk": "EWS.v5.CHUNK0071", "abstain_expected": false}
+{"question": "What are the different mechanisms for hyperkalemia?", "expected_chunk": "EWS.v5.CHUNK0073", "abstain_expected": false}
+{"question": "Which medications may contribute to renal failure in the multisystem trauma patient?", "expected_chunk": "EWS.v5.CHUNK0088", "abstain_expected": false}
+{"question": "What are the key features of hyperglycemic hyperosmolar non-ketotic syndrome (HHS)?", "expected_chunk": "EWS.v5.CHUNK0090", "abstain_expected": false}
+{"question": "What is the first priority in managing airway compromise in trauma patients?", "expected_chunk": "EWS.v5.CHUNK0097", "abstain_expected": false}
+{"question": "What is the capital of France?", "expected_chunk": null, "abstain_expected": true}
+{"question": "Who won the World Cup 2022?", "expected_chunk": null, "abstain_expected": true}
+{"question": "Resep rendang padang apa?", "expected_chunk": null, "abstain_expected": true}
+{"question": "Siapa presiden Indonesia ke-8?", "expected_chunk": null, "abstain_expected": true}
+{"question": "Explain quantum entanglement in detail?", "expected_chunk": null, "abstain_expected": true}
