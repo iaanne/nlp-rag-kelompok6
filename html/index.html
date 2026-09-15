@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EWS Medical RAG - Dashboard</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0f1117;
+      --bg2: #1a1a2e;
+      --bg3: #21262d;
+      --border: #30363d;
+      --text: #e0e0e0;
+      --text2: #8b949e;
+      --accent: #7ee787;
+      --accent2: #58a6ff;
+      --danger: #f85149;
+    }
+    body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    header { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    header h1 { color: var(--accent); font-size: 1.4rem; }
+    .status-badge { background: var(--accent); color: #000; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+
+    .main { display: grid; grid-template-columns: 280px 1fr; min-height: calc(100vh - 70px); }
+
+    .sidebar { background: var(--bg2); border-right: 1px solid var(--border); padding: 1.5rem; overflow-y: auto; max-height: calc(100vh - 70px); }
+    .sidebar-section { margin-bottom: 1.5rem; }
+    .sidebar h3 { color: var(--text2); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.75rem; }
+
+    .nav-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 8px; cursor: pointer; transition: 0.2s; color: var(--text2); margin-bottom: 0.3rem; }
+    .nav-item:hover, .nav-item.active { background: var(--bg3); color: var(--text); }
+    .nav-item.active { border-left: 3px solid var(--accent); }
+    .nav-item .icon { font-size: 1.2rem; }
+
+    .quick-topic { background: var(--bg3); padding: 0.5rem 0.75rem; border-radius: 6px; margin-bottom: 0.4rem; cursor: pointer; transition: 0.2s; border: 1px solid transparent; font-size: 0.9rem; }
+    .quick-topic:hover { border-color: var(--accent); color: var(--accent); }
+
+    .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
+    .stat-card { background: var(--bg3); border-radius: 8px; padding: 0.75rem; border: 1px solid var(--border); }
+    .stat-card .label { color: var(--text2); font-size: 0.7rem; margin-bottom: 0.3rem; }
+    .stat-card .value { font-size: 1.5rem; font-weight: 700; }
+    .stat-card .value.accent { color: var(--accent); }
+    .stat-card .value.blue { color: var(--accent2); }
+
+    .content { padding: 2rem; overflow-y: auto; max-height: calc(100vh - 70px); }
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    .chat-container { max-width: 900px; margin: 0 auto; }
+    .chat-messages { background: var(--bg2); border-radius: 12px; border: 1px solid var(--border); height: 500px; overflow-y: auto; padding: 1.5rem; margin-bottom: 1rem; }
+
+    .msg { margin-bottom: 1rem; padding: 1rem 1.25rem; border-radius: 12px; max-width: 90%; line-height: 1.6; white-space: pre-wrap; }
+    .msg.user { background: #238636; color: #fff; margin-left: auto; border-bottom-right-radius: 4px; }
+    .msg.bot { background: var(--bg3); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+    .msg.bot .qa-item { margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
+    .msg.bot .qa-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+    .msg.bot .question { color: #fff; font-weight: 500; margin-bottom: 0.5rem; }
+    .msg.bot .answer { color: var(--text2); line-height: 1.5; }
+    .msg.system { background: transparent; color: var(--text2); text-align: center; font-size: 0.9rem; max-width: 100%; }
+    .msg .meta { display: inline-block; background: var(--accent); color: #000; padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.75rem; margin-top: 0.75rem; }
+
+    .chat-input-wrap { display: flex; gap: 0.75rem; }
+    .chat-input-wrap input { flex: 1; padding: 1rem 1.25rem; border-radius: 12px; border: 1px solid var(--border); background: var(--bg2); color: var(--text); font-size: 1rem; }
+    .chat-input-wrap input:focus { outline: none; border-color: var(--accent); }
+    .chat-input-wrap button { padding: 1rem 2rem; border-radius: 12px; border: none; background: var(--accent); color: #000; font-weight: 600; cursor: pointer; }
+    .chat-input-wrap button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* Docs Panel */
+    .doc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem; }
+    .doc-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; transition: 0.2s; cursor: pointer; }
+    .doc-card:hover { border-color: var(--accent); }
+    .doc-card h4 { color: var(--accent); margin-bottom: 0.5rem; }
+    .doc-card p { color: var(--text2); font-size: 0.85rem; line-height: 1.4; }
+    .doc-card .count { display: inline-block; background: var(--bg3); padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.75rem; margin-top: 0.75rem; }
+
+    /* History Panel */
+    .history-list { display: flex; flex-direction: column; gap: 0.75rem; }
+    .history-item { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; cursor: pointer; transition: 0.2s; }
+    .history-item:hover { border-color: var(--accent); }
+    .history-item .query { color: var(--text); margin-bottom: 0.5rem; }
+    .history-item .meta { display: flex; gap: 1rem; color: var(--text2); font-size: 0.8rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🩺 EWS Medical RAG</h1>
+    <div class="header-right">
+      <span style="color: var(--text2); font-size: 0.85rem;">Bedah Darurat Perang | 86 Dokumen</span>
+      <span class="status-badge">● Online</span>
+    </div>
+  </header>
+
+  <div class="main">
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <h3>Menu</h3>
+        <div class="nav-item active" data-panel="chat">
+          <span class="icon">💬</span>
+          <span>Konsultasi</span>
+        </div>
+        <div class="nav-item" data-panel="history">
+          <span class="icon">📜</span>
+          <span>Riwayat</span>
+        </div>
+        <div class="nav-item" data-panel="docs">
+          <span class="icon">📚</span>
+          <span>Dokumen</span>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <h3>Topik Cepat</h3>
+        <div class="quick-topic" data-query="crush syndrome">🦴 Crush Syndrome</div>
+        <div class="quick-topic" data-query="luka bakar burn">🔥 Luka Bakar</div>
+        <div class="quick-topic" data-query="pneumothorax">🫁 Pneumothorax</div>
+        <div class="quick-topic" data-query="IV fluid resuscitation">💉 Cairan IV</div>
+        <div class="quick-topic" data-query="blood transfusion">🩸 Transfusi Darah</div>
+        <div class="quick-topic" data-query="airway management">🫁 Airway</div>
+        <div class="quick-topic" data-query="anesthesia">💊 Anestesi</div>
+        <div class="quick-topic" data-query="altitude cold frostbite">❄️ Lingkungan</div>
+        <div class="quick-topic" data-query="trauma injury">⚡ Trauma</div>
+      </div>
+
+      <div class="sidebar-section">
+        <h3>Statistik</h3>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="label">Total Query</div>
+            <div class="value accent" id="total-queries">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">Dokumen</div>
+            <div class="value blue" id="total-docs">86</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="content">
+      <!-- Chat Panel -->
+      <div class="panel active" id="panel-chat">
+        <div class="chat-container">
+          <div class="chat-messages" id="chat-messages">
+            <div class="msg system">Ketik pertanyaan tentang bedah darurat perang atau klik topik di sidebar...</div>
+          </div>
+          <div class="chat-input-wrap">
+            <input type="text" id="query-input" placeholder="Tulis pertanyaan Anda di sini..." autocomplete="off" />
+            <button id="send-btn" onclick="sendQuery()">Kirim</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- History Panel -->
+      <div class="panel" id="panel-history">
+        <h2 style="margin-bottom: 1.5rem;">📜 Riwayat Percakapan</h2>
+        <div class="history-list" id="history-list">
+          <div class="msg system">Belum ada riwayat. Mulai chatting untuk melihat histori.</div>
+        </div>
+      </div>
+
+      <!-- Docs Panel -->
+      <div class="panel" id="panel-docs">
+        <h2 style="margin-bottom: 1.5rem;">📚 Topik Dokumen dalam Dataset</h2>
+        <div class="doc-grid" id="doc-grid">
+          <div class="doc-card" data-query="fluid resuscitation IV">
+            <h4>💉 Cairan IV & Resusitasi</h4>
+            <p>Panduan cairan IV untuk damage control, crystalloid, colloid, Hextend</p>
+            <span class="count">9 dokumen</span>
+          </div>
+          <div class="doc-card" data-query="crush syndrome rhabdomyolysis">
+            <h4>🦴 Sindrom Crush</h4>
+            <p>Manajemen crush syndrome, pencegahan ARF, rhabdomyolysis</p>
+            <span class="count">2 dokumen</span>
+          </div>
+          <div class="doc-card" data-query="blood transfusion TRALI">
+            <h4>🩸 Transfusi Darah</h4>
+            <p>Reaksi transfusi, TRALI, hemolytic reaction, DD Form 572</p>
+            <span class="count">5 dokumen</span>
+          </div>
+          <div class="doc-card" data-query="pneumothorax chest thoracic">
+            <h4>🫁 Trauma Toraks</h4>
+            <p>Pneumothorax, tension pneumothorax, chest trauma</p>
+            <span class="count">2 dokumen</span>
+          </div>
+          <div class="doc-card" data-query="airway breathing ventilation">
+            <h4>🫁 Airway & Ventilasi</h4>
+            <p>Manajemen airway, ventilasi, intubation</p>
+            <span class="count">2 dokumen</span>
+          </div>
+          <div class="doc-card" data-query="burn thermal injury">
+            <h4>🔥 Luka Bakar</h4>
+            <p>Manajemen luka bakar, Rule of Tens, fluid resuscitation</p>
+            <span class="count">2 dokumen</span>
+          </div>
+          <div class="doc-card" data-query="anesthesia analgesia regional">
+            <h4>💊 Anestesi</h4>
+            <p>Regional anesthesia, analgesi di battlefield</p>
+            <span class="count">3 dokumen</span>
+          </div>
+          <div class="doc-card" data-query="altitude cold frostbite">
+            <h4>❄️ Cedera Lingkungan</h4>
+            <p>Altitude sickness, frostbite, cold injury</p>
+            <span class="count">5 dokumen</span>
+          </div>
+          <div class="doc-card" data-query="trauma injury">
+            <h4>⚡ Trauma Umum</h4>
+            <p>Manajemen trauma, triage, mass casualty</p>
+            <span class="count">4 dokumen</span>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const API = "http://localhost:9000/webhook/rag-chat";
+    let queryCount = 0;
+    let history = [];
+
+    function addMessage(text, type, contextCount = null) {
+      const chat = document.getElementById("chat-messages");
+      const div = document.createElement("div");
+      div.className = `msg ${type}`;
+
+      if (type === "bot") {
+        div.innerHTML = formatResponse(text);
+      } else {
+        div.textContent = text;
+      }
+
+      if (contextCount !== null && contextCount !== undefined) {
+        div.innerHTML += `<div class="meta">📚 ${contextCount} dokumen referensi</div>`;
+      }
+
+      chat.appendChild(div);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    function formatResponse(text) {
+      let html = "";
+      if (text.includes("**")) {
+        const items = text.split(/\*\*\d+\./).filter(s => s.trim());
+        items.forEach(item => {
+          if (item.trim()) {
+            const parts = item.split(/\*\*|\n\n|_/);
+            const question = parts[1] || "";
+            const answer = parts.slice(2).join("").replace(/^\s*—\s*/, "").replace(/_\s*$/, "").trim();
+            if (question || answer) {
+              html += `<div class="qa-item">`;
+              if (question) html += `<div class="question">${question}</div>`;
+              if (answer) html += `<div class="answer">${answer}</div>`;
+              html += `</div>`;
+            }
+          }
+        });
+      }
+      if (!html) {
+        html = `<div class="answer">${text.replace(/\n/g, '<br>')}</div>`;
+      }
+      return html;
+    }
+
+    async function sendQuery(query) {
+      const input = document.getElementById("query-input");
+      const btn = document.getElementById("send-btn");
+      const q = query || input.value.trim();
+      if (!q) return;
+
+      if (!query) input.value = "";
+      addMessage(q, "user");
+      addMessage("⏳ Mencari...", "system");
+      btn.disabled = true;
+
+      try {
+        const res = await fetch(API, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query: q }),
+        });
+        document.querySelector(".msg.system:last-child")?.remove();
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        queryCount++;
+        document.getElementById("total-queries").textContent = queryCount;
+        history.unshift({ query: q, answer: data.answer, context: data.context_used, time: new Date() });
+        updateHistory();
+        addMessage(data.answer, "bot", data.context_used);
+      } catch (e) {
+        document.querySelector(".msg.system:last-child")?.remove();
+        addMessage(`Error: ${e.message}`, "system");
+      } finally {
+        btn.disabled = false;
+        input.focus();
+      }
+    }
+
+    function updateHistory() {
+      const list = document.getElementById("history-list");
+      if (history.length === 0) {
+        list.innerHTML = '<div class="msg system">Belum ada riwayat.</div>';
+        return;
+      }
+      list.innerHTML = history.map((h, i) => `
+        <div class="history-item" onclick="loadHistory(${i})">
+          <div class="query">${h.query}</div>
+          <div class="meta">
+            <span>📅 ${new Date(h.time).toLocaleString("id-ID")}</span>
+            <span>📚 ${h.context} dokumen</span>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function loadHistory(index) {
+      const h = history[index];
+      switchPanel("chat");
+      document.getElementById("chat-messages").innerHTML = "";
+      addMessage(h.query, "user");
+      addMessage(h.answer, "bot", h.context);
+    }
+
+    function switchPanel(name) {
+      document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
+      document.querySelector(`[data-panel="${name}"]`).classList.add("active");
+      document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
+      document.getElementById(`panel-${name}`).classList.add("active");
+    }
+
+    // Event listeners
+    document.querySelectorAll(".nav-item").forEach(n => {
+      n.addEventListener("click", () => switchPanel(n.dataset.panel));
+    });
+
+    document.querySelectorAll(".quick-topic").forEach(t => {
+      t.addEventListener("click", () => sendQuery(t.dataset.query));
+    });
+
+    document.querySelectorAll(".doc-card").forEach(c => {
+      c.addEventListener("click", () => {
+        switchPanel("chat");
+        sendQuery(c.dataset.query);
+      });
+    });
+
+    document.getElementById("query-input").addEventListener("keydown", e => {
+      if (e.key === "Enter") sendQuery();
+    });
+  </script>
+</body>
+</html>

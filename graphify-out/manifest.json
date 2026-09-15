@@ -1,0 +1,27 @@
+{
+  "agency-landing/src/app/contact/page.tsx": {
+    "mtime": 1785571386.1038697,
+    "ast_hash": "7560ac9ae154ff36ceb6a2d22eee4cba",
+    "semantic_hash": ""
+  },
+  "agency-landing/src/app/layout.tsx": {
+    "mtime": 1785861862.0639832,
+    "ast_hash": "ca576c7800ff5fb9fb0cbb506399867a",
+    "semantic_hash": ""
+  },
+  "agency-landing/src/app/page.tsx": {
+    "mtime": 1785863903.3439236,
+    "ast_hash": "5c9e92706222f955cf72b0e8b00aee0a",
+    "semantic_hash": ""
+  },
+  "agency-landing/src/config/content.ts": {
+    "mtime": 1785863923.3199232,
+    "ast_hash": "c18c23460c17b8b848bd1149e749518a",
+    "semantic_hash": ""
+  },
+  "agency-landing/src/app/icon.svg": {
+    "mtime": 1785339864.7157505,
+    "ast_hash": "2ce813fc10a74ba0d1fb3252146f3944",
+    "semantic_hash": ""
+  }
+}

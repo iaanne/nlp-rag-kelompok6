@@ -1,0 +1,122 @@
+{
+  "name": "RAG Chat Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "rag-chat",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "rag-chat"
+    },
+    {
+      "parameters": {
+        "url": "http://qdrant:6333/collections/ews_medical_qa/points/search",
+        "method": "POST",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "vector", "value": "={{ $json.embedding }}" },
+            { "name": "limit", "value": 3 },
+            { "name": "with_payload", "value": true }
+          ]
+        },
+        "options": {}
+      },
+      "id": "qdrant-search",
+      "name": "Qdrant Search",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [500, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const results = $input.all();\nconst top = results[0].json.result || [];\nconst context = top.map(r => `Q: ${r.payload.question}\\nA: ${r.payload.answer}`).join('\\n\\n');\nconst query = $('Webhook Trigger').item.json.body.query;\nreturn [{ json: { context, query } }];"
+      },
+      "id": "build-prompt",
+      "name": "Build Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [750, 300]
+    },
+    {
+      "parameters": {
+        "resource": "chat",
+        "operation": "complete",
+        "model": "gpt-4o-mini",
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You are a medical assistant. Answer based ONLY on the provided context. If the answer is not in the context, say you don't know."
+            },
+            {
+              "role": "user",
+              "content": "Context:\n{{ $json.context }}\n\nQuestion: {{ $json.query }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "llm-chain",
+      "name": "LLM Chain",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1,
+      "position": [1000, 300],
+      "credentials": {
+        "openAiApi": {
+          "id": "openai-cred",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { output: $json.message?.content || $json.choices?.[0]?.message?.content || 'No response' } }}"
+      },
+      "id": "webhook-response",
+      "name": "Webhook Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1250, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [{ "node": "qdrant-search", "type": "main", "index": 0 }]
+      ]
+    },
+    "qdrant-search": {
+      "main": [
+        [{ "node": "build-prompt", "type": "main", "index": 0 }]
+      ]
+    },
+    "build-prompt": {
+      "main": [
+        [{ "node": "llm-chain", "type": "main", "index": 0 }]
+      ]
+    },
+    "llm-chain": {
+      "main": [
+        [{ "node": "Webhook Response", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {},
+  "id": "rag-chat-workflow"
+}
