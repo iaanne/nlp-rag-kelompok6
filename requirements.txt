@@ -4,3 +4,6 @@ datasets
 langchain
 langchain-huggingface
 langchain-chroma
+numpy
+streamlit
+# opsional LLM (berat, butuh GPU/VRAM): transformers, accelerate, torch
